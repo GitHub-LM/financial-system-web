@@ -5,7 +5,12 @@
 </template>
 
 <script>
-export default  {
-  name:  'App'
-}
+export default {
+  name: "App",
+};
 </script>
+<style>
+.el-dialog__footer {
+  text-align: center;
+}
+</style>
