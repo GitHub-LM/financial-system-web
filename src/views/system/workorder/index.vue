@@ -119,6 +119,7 @@
             v-for="(item, index) in scope.row.imgArr"
             :key="index"
             :src="item"
+            @click="showBigImg(item)"
             alt="工作内容(图片)"
           />
         </template>
@@ -354,8 +355,15 @@ export default {
     });
   },
   methods: {
-    changeValue(e) {
-      return this.$set(this.form, "amountPrice", convertCurrency(e));
+    showBigImg(url) {
+      this.$alert(
+        `<img src='${url}' style="width:100%;height:80%"/>`,
+        "大图展示",
+        {
+          dangerouslyUseHTMLString: true,
+          center: true,
+        }
+      );
     },
     /** 查询工单上报数据列表 */
     getList() {
@@ -490,6 +498,7 @@ export default {
   },
 };
 </script>
+
 <style lang="scss" scoped>
 .approveing {
   color: #d8af0c;

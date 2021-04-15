@@ -112,7 +112,8 @@
       />
       <el-table-column
         label="金额（¥）"
-        prop="price"
+        prop="totalPrice"
+        align="center"
         :show-overflow-tooltip="true"
         width="150"
       />
@@ -234,9 +235,9 @@
         </el-row>
         <el-row>
           <el-col :span="12">
-            <el-form-item label="金额" prop="price">
+            <el-form-item label="金额" prop="totalPrice">
               <el-input
-                v-model="form.price"
+                v-model="form.totalPrice"
                 :disabled="true"
                 placeholder="请输入金额"
               />
@@ -374,10 +375,11 @@ export default {
   methods: {
     showBigImg(url) {
       this.$alert(
-        `<img src='${url}' style="width:auto;height:auto"/>`,
+        `<img src='${url}' style="width:100%;height:80%"/>`,
         "大图展示",
         {
           dangerouslyUseHTMLString: true,
+          center: true,
         }
       );
     },
@@ -420,7 +422,6 @@ export default {
     getList() {
       this.loading = true;
       this.$api.getProcurementList().then((response) => {
-        // this.roleList = response.rows;
         this.roleList = response.rows.map((item) => {
           return {
             ...item,
@@ -490,8 +491,13 @@ export default {
       const id = row.id || this.id;
       this.$api.getProcurementListById(id).then((response) => {
         this.form = response.data;
+        this.$set(
+          this.form,
+          "amountPrice",
+          convertCurrency(this.form.totalPrice)
+        );
         this.open = true;
-        this.title = "修改";
+        this.title = "采购审核";
       });
     },
     /** 提交按钮 */
