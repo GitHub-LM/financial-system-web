@@ -64,16 +64,6 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <!-- <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="el-icon-plus"
-          size="mini"
-          @click="handleAdd"
-          v-hasPermi="['system:procurement:add']"
-        >新增</el-button>
-      </el-col> -->
       <el-col :span="1.5">
         <el-button
           type="warning"
@@ -102,20 +92,27 @@
         label="项目名称"
         prop="projectName"
         :show-overflow-tooltip="true"
-        width="200"
+        width="150"
       />
       <el-table-column
         label="采购人"
         prop="name"
         :show-overflow-tooltip="true"
-        width="150"
+        width="100"
       />
       <el-table-column
         label="金额（¥）"
         prop="totalPrice"
         align="center"
         :show-overflow-tooltip="true"
-        width="150"
+        width="100"
+      />
+      <el-table-column
+        label="大写金额"
+        prop="capsPrice"
+        align="center"
+        width="100"
+        :show-overflow-tooltip="true"
       />
       <el-table-column
         label="采购内容"
@@ -191,13 +188,6 @@
             v-hasPermi="['system:order:edit']"
             >审核</el-button
           >
-          <!-- <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['system:role:remove']"
-          >删除</el-button> -->
         </template>
       </el-table-column>
     </el-table>
@@ -211,7 +201,7 @@
     />
 
     <!-- 添加或修改角色配置对话框 -->
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-row>
           <el-col :span="12">
@@ -244,8 +234,8 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="大写金额" prop="amountPrice">
-              <el-input v-model="form.amountPrice" :disabled="true" />
+            <el-form-item label="大写金额" prop="capsPrice">
+              <el-input v-model="form.capsPrice" :disabled="true" />
             </el-form-item>
           </el-col>
         </el-row>
@@ -293,6 +283,45 @@
               ></el-input>
             </el-form-item>
           </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="修改内容(图片)" prop="modifyContent">
+              <el-upload
+                :action="action"
+                list-type="picture-card"
+                :limit="3"
+                :headers="headers"
+                :file-list="fileList"
+                :on-success="handleAvatarSuccess"
+                :on-exceed="handleExceed"
+              >
+                <i slot="default" class="el-icon-plus"></i>
+                <div slot="file" slot-scope="{ file }">
+                  <img
+                    class="el-upload-list__item-thumbnail"
+                    :src="file.url"
+                    alt=""
+                  />
+                  <span class="el-upload-list__item-actions">
+                    <span
+                      class="el-upload-list__item-preview"
+                      @click="handlePictureCardPreview(file)"
+                    >
+                      <i class="el-icon-zoom-in"></i>
+                    </span>
+                    <span
+                      v-if="!disabled"
+                      class="el-upload-list__item-delete"
+                      @click="handleRemove(file)"
+                    >
+                      <i class="el-icon-delete"></i>
+                    </span>
+                  </span>
+                </div>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+
           <el-col :span="24">
             <el-form-item label="修改原因" prop="modifyReason">
               <el-input
@@ -305,11 +334,13 @@
         </el-row>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <!-- <el-button type="primary" @click="submitForm">确 定</el-button>
-        <el-button @click="cancel">取 消</el-button> -->
         <el-button type="primary" @click="handlePass(form)">通过</el-button>
         <el-button type="danger" @click="handleRefuse(form)">驳回</el-button>
       </div>
+    </el-dialog>
+    <!-- 图片预览 -->
+    <el-dialog :visible.sync="dialogVisible">
+      <img width="100%" :src="dialogImageUrl" alt="" />
     </el-dialog>
   </div>
 </template>
@@ -322,6 +353,14 @@ export default {
   name: "Role",
   data() {
     return {
+      action: "http://120.55.64.164:8086/common/upload",
+      dialogImageUrl: "",
+      dialogVisible: false,
+      disabled: false,
+      fileList: [],
+      headers: {
+        Authorization: "Bearer " + this.$store.state.user.token,
+      },
       // 遮罩层
       loading: true,
       // 选中数组
@@ -373,6 +412,30 @@ export default {
     });
   },
   methods: {
+    handleExceed() {
+      this.$message.error("最多上传3张");
+    },
+    // 删除图片
+    handleRemove(file) {
+      this.fileList = this.fileList.filter((item) => item.name !== file.name);
+      const imgArr = this.fileList.map((item) => {
+        return item.url ? item.url : item.response.url;
+      });
+      this.$set(this.form, "modifyImg", JSON.stringify(imgArr));
+    },
+    // 图片预览
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    // 上传成功
+    handleAvatarSuccess(res, file, fileList) {
+      this.fileList = fileList;
+      const imgArr = this.fileList.map((item) => {
+        return item.response ? item.response.url : item.url;
+      });
+      this.$set(this.form, "modifyImg", JSON.stringify(imgArr));
+    },
     showBigImg(url) {
       this.$alert(
         `<img src='${url}' style="width:100%;height:80%"/>`,
@@ -416,7 +479,7 @@ export default {
       });
     },
     changeValue(e) {
-      return this.$set(this.form, "amountPrice", convertCurrency(e));
+      return this.$set(this.form, "capsPrice", convertCurrency(e));
     },
     /** 查询数据列表 */
     getList() {
@@ -425,6 +488,7 @@ export default {
         this.roleList = response.rows.map((item) => {
           return {
             ...item,
+            capsPrice: convertCurrency(item.totalPrice),
             imgArr: item.contentImg.length ? JSON.parse(item.contentImg) : [],
           };
         });
@@ -443,7 +507,7 @@ export default {
         name: "name",
         content: "123123123",
         price: "123",
-        amountPrice: "",
+        capsPrice: "",
         reason: "reason",
         // createTime: '2021-12-12 00:00:00',
       };
@@ -468,7 +532,12 @@ export default {
       this.$api
         .getProcurementList(this.addDateRange(this.queryParams, this.dateRange))
         .then((response) => {
-          this.roleList = response.rows;
+          this.roleList = response.rows.map((item) => {
+            return {
+              ...item,
+              imgArr: item.contentImg.length ? JSON.parse(item.contentImg) : [],
+            };
+          });
           this.total = response.total;
           this.loading = false;
         });
@@ -493,7 +562,7 @@ export default {
         this.form = response.data;
         this.$set(
           this.form,
-          "amountPrice",
+          "capsPrice",
           convertCurrency(this.form.totalPrice)
         );
         this.open = true;

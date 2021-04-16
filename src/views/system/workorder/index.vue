@@ -1,4 +1,5 @@
 <template>
+  <!--  工单上报查询 -->
   <div class="app-container">
     <el-form
       :model="queryParams"
@@ -91,24 +92,37 @@
         label="项目名称"
         prop="projectName"
         :show-overflow-tooltip="true"
-        width="200"
+        width="150"
       />
-
+      <el-table-column
+        label="上报人"
+        prop="name"
+        align="center"
+        :show-overflow-tooltip="true"
+        width="100"
+      />
       <el-table-column
         label="金额（¥）"
         prop="totalPrice"
         align="center"
         :show-overflow-tooltip="true"
-        width="150"
+        width="100"
       />
       <el-table-column
-        label="工作内容"
+        label="大写金额"
+        prop="capsPrice"
+        align="center"
+        width="100"
+        :show-overflow-tooltip="true"
+      />
+      <el-table-column
+        label="上报内容"
         prop="content"
         :show-overflow-tooltip="true"
         width="250"
       />
       <el-table-column
-        label="工作内容(图片)"
+        label="上报内容(图片)"
         prop="content"
         :show-overflow-tooltip="true"
         width="200"
@@ -120,17 +134,10 @@
             :key="index"
             :src="item"
             @click="showBigImg(item)"
-            alt="工作内容(图片)"
+            alt="上报内容(图片)"
           />
         </template>
       </el-table-column>
-      <el-table-column
-        label="上报人"
-        prop="name"
-        align="center"
-        :show-overflow-tooltip="true"
-        width="150"
-      />
       <el-table-column
         label="手机号"
         prop="phone"
@@ -142,7 +149,7 @@
         label="上报时间"
         align="center"
         prop="createTime"
-        width="150"
+        width="180"
       >
         <template slot-scope="scope">
           <span>{{ parseTime(scope.row.createTime) }}</span>
@@ -182,13 +189,6 @@
             v-hasPermi="['system:order:edit']"
             >审核</el-button
           >
-          <!-- <el-button
-            size="mini"
-            type="text"
-            icon="el-icon-delete"
-            @click="handleDelete(scope.row)"
-            v-hasPermi="['system:role:remove']"
-          >删除</el-button> -->
         </template>
       </el-table-column>
     </el-table>
@@ -201,7 +201,7 @@
       @pagination="getList"
     />
 
-    <el-dialog :title="title" :visible.sync="open" width="500px" append-to-body>
+    <el-dialog :title="title" :visible.sync="open" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-row>
           <el-col :span="12">
@@ -227,7 +227,7 @@
           </el-col>
           <el-col :span="12">
             <el-form-item label="大写金额">
-              <el-input v-model="form.amountPrice" :disabled="true" />
+              <el-input v-model="form.capsPrice" :disabled="true" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -259,6 +259,8 @@
                 type="textarea"
                 :title="form.content"
                 :disabled="true"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                maxlength="300"
                 placeholder="请输入工作内容"
               ></el-input>
             </el-form-item>
@@ -271,15 +273,58 @@
               <el-input
                 v-model="form.modifyContent"
                 type="textarea"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                maxlength="300"
                 placeholder="请输入修改内容"
               />
             </el-form-item>
           </el-col>
+
+          <el-col :span="24">
+            <el-form-item label="修改内容(图片)" prop="modifyContent">
+              <el-upload
+                :action="action"
+                list-type="picture-card"
+                :limit="3"
+                :headers="headers"
+                :file-list="fileList"
+                :on-success="handleAvatarSuccess"
+                :on-exceed="handleExceed"
+              >
+                <i slot="default" class="el-icon-plus"></i>
+                <div slot="file" slot-scope="{ file }">
+                  <img
+                    class="el-upload-list__item-thumbnail"
+                    :src="file.url"
+                    alt=""
+                  />
+                  <span class="el-upload-list__item-actions">
+                    <span
+                      class="el-upload-list__item-preview"
+                      @click="handlePictureCardPreview(file)"
+                    >
+                      <i class="el-icon-zoom-in"></i>
+                    </span>
+                    <span
+                      v-if="!disabled"
+                      class="el-upload-list__item-delete"
+                      @click="handleRemove(file)"
+                    >
+                      <i class="el-icon-delete"></i>
+                    </span>
+                  </span>
+                </div>
+              </el-upload>
+            </el-form-item>
+          </el-col>
+
           <el-col :span="24">
             <el-form-item label="修改原因" prop="modifyReason">
               <el-input
                 v-model="form.modifyReason"
                 type="textarea"
+                :autosize="{ minRows: 2, maxRows: 4 }"
+                maxlength="300"
                 placeholder="请输入修改原因"
               ></el-input>
             </el-form-item>
@@ -293,17 +338,29 @@
         <el-button type="danger" @click="handleRefuse(form)">驳回</el-button>
       </div>
     </el-dialog>
+    <!-- 图片预览 -->
+    <el-dialog :visible.sync="dialogVisible">
+      <img width="100%" :src="dialogImageUrl" alt="" />
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { delRole, exportRole, dataScope } from "@/api/system/role";
+import { delRole } from "@/api/system/role";
 import { convertCurrency } from "@/utils/index";
 
 export default {
   name: "Role",
   data() {
     return {
+      action: "http://120.55.64.164:8086/common/upload",
+      dialogImageUrl: "",
+      dialogVisible: false,
+      disabled: false,
+      fileList: [],
+      headers: {
+        Authorization: "Bearer " + this.$store.state.user.token,
+      },
       // 遮罩层
       loading: true,
       // 选中数组
@@ -355,6 +412,30 @@ export default {
     });
   },
   methods: {
+    handleExceed() {
+      this.$message.error("最多上传3张");
+    },
+    // 删除图片
+    handleRemove(file) {
+      this.fileList = this.fileList.filter((item) => item.name !== file.name);
+      const imgArr = this.fileList.map((item) => {
+        return item.url ? item.url : item.response.url;
+      });
+      this.$set(this.form, "modifyImg", JSON.stringify(imgArr));
+    },
+    // 图片预览
+    handlePictureCardPreview(file) {
+      this.dialogImageUrl = file.url;
+      this.dialogVisible = true;
+    },
+    // 上传成功
+    handleAvatarSuccess(res, file, fileList) {
+      this.fileList = fileList;
+      const imgArr = this.fileList.map((item) => {
+        return item.response ? item.response.url : item.url;
+      });
+      this.$set(this.form, "modifyImg", JSON.stringify(imgArr));
+    },
     showBigImg(url) {
       this.$alert(
         `<img src='${url}' style="width:100%;height:80%"/>`,
@@ -372,6 +453,7 @@ export default {
         this.roleList = response.rows.map((item) => {
           return {
             ...item,
+            capsPrice: convertCurrency(item.totalPrice),
             imgArr: item.contentImg.length ? JSON.parse(item.contentImg) : [],
           };
         });
@@ -401,7 +483,12 @@ export default {
       this.$api
         .getWorkOrderList(this.addDateRange(this.queryParams, this.dateRange))
         .then((response) => {
-          this.roleList = response.rows;
+          this.roleList = response.rows.map((item) => {
+            return {
+              ...item,
+              imgArr: item.contentImg.length ? JSON.parse(item.contentImg) : [],
+            };
+          });
           this.total = response.total;
           this.loading = false;
         });
@@ -426,11 +513,17 @@ export default {
         this.form = response.data;
         this.$set(
           this.form,
-          "amountPrice",
+          "capsPrice",
           convertCurrency(this.form.totalPrice)
         );
         this.open = true;
         this.title = "审核工单";
+        this.fileList = JSON.parse(this.form.modifyImg).map((item, ind) => {
+          return {
+            name: ind,
+            url: item,
+          };
+        });
       });
     },
     /** 驳回 */
@@ -448,6 +541,7 @@ export default {
           this.$api.editWorkOrderListById(params).then((res) => {
             this.msgSuccess("修改成功");
             this.open = false;
+            this.fileList = [];
             this.getList();
           });
         }
