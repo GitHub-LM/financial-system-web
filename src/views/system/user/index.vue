@@ -321,7 +321,6 @@
     <el-dialog
       :title="title"
       :visible.sync="open"
-      width="600px"
       append-to-body
     >
       <el-form
@@ -366,6 +365,30 @@
                 v-model="form.phonenumber"
                 placeholder="请输入手机号码"
                 maxlength="11"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item
+              label="身份证号"
+              prop="idCard"
+            >
+              <el-input
+                v-model="form.idCard"
+                placeholder="请输入身份证号"
+                maxlength="18"
+              />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item
+              label="家庭住址"
+              prop="address"
+            >
+              <el-input
+                v-model="form.address"
+                placeholder="请输入家庭住址"
+                maxlength="50"
               />
             </el-form-item>
           </el-col>
