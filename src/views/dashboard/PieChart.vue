@@ -62,11 +62,11 @@ export default {
             radius: [15, 95],
             center: ['50%', '38%'],
             data: [
-              { value: 320, name: 'Industries' },
-              { value: 240, name: 'Technology' },
-              { value: 149, name: 'Forex' },
-              { value: 100, name: 'Gold' },
-              { value: 59, name: 'Forecasts' }
+              { value: 0, name: 'Industries' },
+              { value: 0, name: 'Technology' },
+              { value: 0, name: 'Forex' },
+              { value: 0, name: 'Gold' },
+              { value: 0, name: 'Forecasts' }
             ],
             animationEasing: 'cubicInOut',
             animationDuration: 2600

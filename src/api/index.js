@@ -4,7 +4,6 @@
  * @LastEditTime: 2021-03-22 21:31:07
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
- * @FilePath: \ruoyi-ui\src\api\index.js
  */
 
 import request from '@/utils/request'

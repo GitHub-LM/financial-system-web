@@ -8,7 +8,7 @@ function resolve(dir) {
 
 const name = defaultSettings.title || '管理系统' // 标题
 
-const port = process.env.port || process.env.npm_config_port || 80 // 端口
+const port = process.env.port || process.env.npm_config_port || 8084 // 端口
 
 module.exports = {
   // 部署生产环境和开发环境下的URL。

@@ -28,6 +28,3 @@ npm run build:stage
 # 构建生产环境
 npm run build:prod
 ```
-
-    "script-ext-html-webpack-plugin": "2.1.5",
-    "eslint": "7.15.0",

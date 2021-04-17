@@ -8,21 +8,21 @@
 -->
 <template>
   <div class="app-container home">
-    home
+    <img src="../assets/images/1.jpg" alt="" />
   </div>
 </template>
 
 <script>
 export default {
   name: "index",
-  data () {
+  data() {
     return {
       // 版本号
       version: "1.1.0",
     };
   },
   methods: {
-    goTarget (href) {
+    goTarget(href) {
       window.open(href, "_blank");
     },
   },
@@ -30,5 +30,11 @@ export default {
 </script>
 
 <style scoped lang="scss">
+.home {
+  img {
+    width: 100%;
+    height: 100%;
+  }
+}
 </style>
 
