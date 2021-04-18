@@ -228,7 +228,7 @@
             label="职位"
             align="center"
             key=""
-            prop="postName"
+            prop="postData"
             v-if="columns[2].visible"
             :show-overflow-tooltip="true"
           />
