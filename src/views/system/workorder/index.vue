@@ -185,8 +185,15 @@
             type="text"
             icon="el-icon-edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['system:order:edit']"
             >审核</el-button
+          >
+          <el-button
+            size="mini"
+            type="text"
+            style="color: #ffba00"
+            icon="el-icon-download"
+            @click="handleExportPaper(scope.row)"
+            >下载审批单</el-button
           >
         </template>
       </el-table-column>
@@ -341,17 +348,29 @@
     <el-dialog :visible.sync="dialogVisible">
       <img width="100%" :src="dialogImageUrl" alt="" />
     </el-dialog>
+    <!-- 导出审批单 -->
+    <ExportPaper
+      :showPaperModal="showPaperModal"
+      @hideModal="showPaperModal = false"
+      :paperData="paperData"
+    />
   </div>
 </template>
 
 <script>
 import { delRole } from "@/api/system/role";
 import { convertCurrency } from "@/utils/index";
+import ExportPaper from "@/components/ExportPaper/index";
 
 export default {
   name: "Role",
+  components: {
+    ExportPaper,
+  },
   data() {
     return {
+      paperData: {},
+      showPaperModal: false,
       action: "http://120.55.64.164:8086/common/upload",
       dialogImageUrl: "",
       dialogVisible: false,
@@ -411,6 +430,11 @@ export default {
     });
   },
   methods: {
+    // 下载审批单
+    handleExportPaper(item) {
+      this.showPaperModal = true;
+      this.paperData = item;
+    },
     handleExceed() {
       this.$message.error("最多上传3张");
     },
