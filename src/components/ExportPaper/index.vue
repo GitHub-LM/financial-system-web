@@ -1,11 +1,10 @@
 <template>
   <!-- 导出审批单 -->
   <el-dialog
-    :visible.sync="showPaperModal"
+    :visible.sync="show"
     width="60%"
     center
-    :show-close="false"
-    :close-on-click-modal="false"
+    @close="handleCancel()"
   >
     <div class="paper" ref="imageDom">
       <div class="paper-tit">报销审批单</div>
@@ -45,7 +44,9 @@
       </div>
     </div>
     <span slot="footer" class="dialog-footer">
-      <el-button type="primary" @click="handleDownloadImg">下 载</el-button>
+      <el-button type="primary" :loading="loading" @click="handleDownloadImg">{{
+        loading ? "下 载 中" : "下 载"
+      }}</el-button>
       <el-button @click="handleCancel">取 消</el-button>
     </span>
   </el-dialog>
@@ -71,7 +72,14 @@ export default {
   data() {
     return {
       imgUrl: "",
+      loading: false,
+      show: false
     };
+  },
+  watch: {
+    showPaperModal(show) {
+      this.show = show
+    },
   },
   filters: {
     convertCurrencyFilters(e) {
@@ -85,6 +93,7 @@ export default {
     },
     // 下载图片
     handleDownloadImg() {
+      this.loading = true;
       html2canvas(this.$refs.imageDom).then((canvas) => {
         // 转成图片，生成图片地址
         this.imgUrl = canvas.toDataURL("image/png");
@@ -93,6 +102,7 @@ export default {
         alink.href = this.imgUrl;
         alink.download = "报销审批单"; //图片名
         alink.click();
+        this.loading = false;
       });
     },
   },
