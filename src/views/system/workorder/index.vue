@@ -363,7 +363,7 @@ import { convertCurrency } from "@/utils/index";
 import ExportPaper from "@/components/ExportPaper/index";
 
 export default {
-  name: "Role",
+  name: "workOrder",
   components: {
     ExportPaper,
   },
