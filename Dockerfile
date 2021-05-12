@@ -1,4 +1,4 @@
-FROM node:8.11.2
+FROM node:15.11.0
 RUN apt-get clean && apt-get update
 RUN apt-get install -y nginx
 WORKDIR /app
